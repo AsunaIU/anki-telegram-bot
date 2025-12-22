@@ -4,11 +4,24 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
+from fluent_compiler.bundle import FluentBundle
+from fluentogram import FluentTranslator, TranslatorHub
 
 from memorius.config import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+
+t_hub = TranslatorHub(
+    {"ru": ("ru",)},
+    translators=[
+        FluentTranslator(
+            "ru",
+            translator=FluentBundle.from_files("ru-RU", filenames=["src/i18n/ru/text.ftl", "src/i18n/ru/button.ftl"]),
+        )
+    ],
+)
 
 
 async def main() -> None:
