@@ -8,6 +8,8 @@ from fluent_compiler.bundle import FluentBundle
 from fluentogram import FluentTranslator, TranslatorHub
 
 from memorius.config import settings
+from memorius.database.database import async_session_maker
+from memorius.middleware import DatabaseMiddleware
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -30,7 +32,8 @@ async def main() -> None:
 
     dp = Dispatcher()
 
-    # Middleware
+    dp.update.middleware(DatabaseMiddleware(async_session_maker))
+
     # Routers
 
     try:
