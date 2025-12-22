@@ -1,12 +1,53 @@
 [project]
-name = "anki-telegram-bot"
+name = "memorius"
 version = "0.1.0"
-description = "Add your description here"
+description = "Memorius the bot"
 readme = "README.md"
 requires-python = ">=3.13"
+
 dependencies = [
     "aiogram>=3.22.0",
     "fluentogram>=1.2.1",
     "pydantic>=2.11.10",
     "pydantic-settings>=2.12.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit==4.2.0",
+    "ruff>=0.6.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/memorius"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+fix = true
+
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM"   # simplify
+]
+
+exclude = [
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
