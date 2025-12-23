@@ -9,8 +9,8 @@ done
 
 echo "PostgreSQL is up"
 echo "Running migrations..."
-uv run alembic upgrade head
+source /app/.venv/bin/activate
+alembic upgrade head
 
 echo "Starting application..."
-cd /app/src
 exec "$@"

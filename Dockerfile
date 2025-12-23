@@ -7,14 +7,15 @@ RUN apt-get update && \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
-COPY pyproject.toml uv.lock ./
-RUN uv sync --locked --no-cache --no-dev
-
+COPY pyproject.toml uv.lock README.md alembic.ini ./
+COPY alembic/ ./alembic/
 COPY src/ ./src/
+
+RUN uv sync --no-cache --no-dev
+
 COPY entrypoint.sh ./
 RUN chmod +x /app/entrypoint.sh
 
-ENV PYTHONPATH=/app/src
-
 ENTRYPOINT ["/app/entrypoint.sh"]
+
 CMD ["uv", "run", "-m", "memorius"]
