@@ -1,4 +1,7 @@
-from aiogram import F, Router
+import asyncio
+from contextlib import suppress
+
+from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from fluentogram import TranslatorRunner
@@ -14,6 +17,148 @@ from memorius.keyboards.keyboards import (
 from memorius.utils import ReviewSession
 
 router = Router()
+
+timeout_tasks = {}
+
+TIMEOUT_SECONDS = 60
+
+
+async def handle_timeout(
+    user_id: int,
+    chat_id: int,
+    message_id: int,
+    state: FSMContext,
+    session: AsyncSession,
+    locale: TranslatorRunner,
+    bot: Bot,
+):
+    """Handle question timeout"""
+    try:
+        await asyncio.sleep(TIMEOUT_SECONDS)
+
+        data = await state.get_data()
+
+        current_state = await state.get_state()
+        if current_state != ReviewSession.in_session:
+            return
+
+        if not data or "current_index" not in data:
+            return
+
+        current_index = data["current_index"]
+        cards = data["cards"]
+        deck_id = data["deck_id"]
+
+        card_repo = CardRepository(session)
+        await card_repo.update_card_review(card_id=cards[current_index], difficulty="hard")
+
+        stats_repo = StatisticsRepository(session)
+        await stats_repo.add_statistics(
+            user_id=user_id, deck_id=deck_id, card_id=cards[current_index], difficulty="hard"
+        )
+
+        hard_count = data.get("hard", 0) + 1
+        await state.update_data(hard=hard_count)
+
+        try:
+            timeout_msg = locale.timeout_msg()
+            await bot.send_message(chat_id=chat_id, text=timeout_msg)
+        except suppress(Exception):
+            pass
+
+        data = await state.get_data()  # Refresh data
+        current_index = data["current_index"] + 1
+        cards = data["cards"]
+        deck_id = data["deck_id"]
+
+        if current_index >= len(cards):
+            total = len(cards)
+            easy = data.get("easy", 0)
+            medium = data.get("medium", 0)
+            hard = data.get("hard", 0)
+            skipped = data.get("skipped", 0)
+
+            await state.clear()
+
+            deck_repo = DeckRepository(session)
+            deck = await deck_repo.get_deck_by_id(deck_id)
+            has_cards = len(deck.cards) > 0
+
+            try:
+                await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    text=locale.session_complete(total=total, easy=easy, medium=medium, hard=hard, skipped=skipped),
+                    reply_markup=get_deck_actions_keyboard(deck_id, has_cards, locale),
+                )
+            except suppress(Exception):
+                pass
+        else:
+            await state.update_data(current_index=current_index)
+
+            card_repo = CardRepository(session)
+            card = await card_repo.get_card_by_id(cards[current_index])
+
+            if card:
+                if card.card_type == "variants":
+                    variants_text = ""
+                    for i in range(1, 5):
+                        variant = getattr(card, f"variant_{i}", None)
+                        if variant:
+                            variants_text += f"{i}. {variant}\n"
+
+                    text = (
+                        locale.question_number(current=current_index + 1, total=len(cards))
+                        + "\n\n"
+                        + card.question
+                        + "\n\n"
+                        + variants_text
+                    )
+                    keyboard = get_variant_keyboard(card, locale)
+                else:
+                    text = locale.question_number(current=current_index + 1, total=len(cards)) + "\n\n" + card.question
+                    keyboard = get_review_keyboard(locale)
+
+                try:
+                    await bot.edit_message_text(
+                        chat_id=chat_id, message_id=message_id, text=text, reply_markup=keyboard
+                    )
+
+                    await start_timeout(user_id, chat_id, message_id, state, session, locale, bot)
+                except suppress(Exception):
+                    pass
+
+        if user_id in timeout_tasks:
+            del timeout_tasks[user_id]
+
+    except asyncio.CancelledError:
+        pass
+    except Exception as e:
+        print(f"Error in timeout handler: {e}")
+
+
+async def start_timeout(
+    user_id: int,
+    chat_id: int,
+    message_id: int,
+    state: FSMContext,
+    session: AsyncSession,
+    locale: TranslatorRunner,
+    bot: Bot,
+):
+    """Start timeout countdown"""
+    if user_id in timeout_tasks:
+        timeout_tasks[user_id].cancel()
+
+    task = asyncio.create_task(handle_timeout(user_id, chat_id, message_id, state, session, locale, bot))
+    timeout_tasks[user_id] = task
+
+
+def cancel_timeout(user_id: int):
+    """Cancel timeout for user"""
+    if user_id in timeout_tasks:
+        timeout_tasks[user_id].cancel()
+        del timeout_tasks[user_id]
 
 
 @router.callback_query(F.data.startswith("start_session_"))
@@ -54,10 +199,22 @@ async def start_session(callback: CallbackQuery, state: FSMContext, session: Asy
 
     await callback.answer()
 
+    await start_timeout(
+        callback.from_user.id,
+        callback.message.chat.id,
+        callback.message.message_id,
+        state,
+        session,
+        locale,
+        callback.bot,
+    )
+
 
 @router.callback_query(F.data == "show_answer", ReviewSession.in_session)
 async def show_answer(callback: CallbackQuery, state: FSMContext, session: AsyncSession, locale: TranslatorRunner):
     """Show answer to current card"""
+    cancel_timeout(callback.from_user.id)
+
     data = await state.get_data()
     cards = data["cards"]
     current_index = data["current_index"]
@@ -75,12 +232,24 @@ async def show_answer(callback: CallbackQuery, state: FSMContext, session: Async
     )
     await callback.answer()
 
+    await start_timeout(
+        callback.from_user.id,
+        callback.message.chat.id,
+        callback.message.message_id,
+        state,
+        session,
+        locale,
+        callback.bot,
+    )
+
 
 @router.callback_query(F.data.startswith("variant_answer_"), ReviewSession.in_session)
 async def check_variant_answer(
     callback: CallbackQuery, state: FSMContext, session: AsyncSession, locale: TranslatorRunner
 ):
     """Check variant answer"""
+    cancel_timeout(callback.from_user.id)
+
     selected_variant = int(callback.data.split("_")[2])
 
     data = await state.get_data()
@@ -117,6 +286,8 @@ async def check_variant_answer(
 @router.callback_query(F.data == "skip_card", ReviewSession.in_session)
 async def skip_card(callback: CallbackQuery, state: FSMContext, session: AsyncSession, locale: TranslatorRunner):
     """Skip current card"""
+    cancel_timeout(callback.from_user.id)
+
     data = await state.get_data()
     current_index = data["current_index"]
     cards = data["cards"]
@@ -135,6 +306,8 @@ async def skip_card(callback: CallbackQuery, state: FSMContext, session: AsyncSe
 @router.callback_query(F.data.startswith("difficulty_"), ReviewSession.in_session)
 async def rate_difficulty(callback: CallbackQuery, state: FSMContext, session: AsyncSession, locale: TranslatorRunner):
     """Rate answer difficulty"""
+    cancel_timeout(callback.from_user.id)
+
     difficulty = callback.data.split("_")[1]  # easy, medium, hard
 
     data = await state.get_data()
@@ -163,6 +336,8 @@ async def next_card(callback: CallbackQuery, state: FSMContext, session: AsyncSe
     deck_id = data["deck_id"]
 
     if current_index >= len(cards):
+        cancel_timeout(callback.from_user.id)
+
         total = len(cards)
         easy = data["easy"]
         medium = data["medium"]
@@ -205,5 +380,15 @@ async def next_card(callback: CallbackQuery, state: FSMContext, session: AsyncSe
                 locale.question_number(current=current_index + 1, total=len(cards)) + "\n\n" + card.question,
                 reply_markup=get_review_keyboard(locale),
             )
+
+        await start_timeout(
+            callback.from_user.id,
+            callback.message.chat.id,
+            callback.message.message_id,
+            state,
+            session,
+            locale,
+            callback.bot,
+        )
 
     await callback.answer()

@@ -15,6 +15,8 @@ card_updated = ✅ Card successfully updated!
 card_deleted = ✅ Card deleted.
 cards_in_deck = 📂 <b>Cards in deck:</b>
 
+timeout_msg = ⏰ Time's up! Question marked as hard.
+
 btn_add_card = ✏️ Add card
 btn_edit_card = ✏️ Edit card
 btn_delete_card = 🗑 Delete card
