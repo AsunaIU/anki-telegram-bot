@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.types import Message
 from fluentogram import TranslatorRunner
 
-from memorius.keyboards.keyboards import get_back_to_menu_keyboard
+from memorius.keyboards import get_back_to_menu_keyboard
 
 router = Router()
 

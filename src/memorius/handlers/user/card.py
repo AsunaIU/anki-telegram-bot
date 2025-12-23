@@ -5,7 +5,7 @@ from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from memorius.database.repositories import CardRepository, DeckRepository
-from memorius.keyboards.keyboards import (
+from memorius.keyboards import (
     get_cancel_keyboard,
     get_card_list_keyboard,
     get_card_type_keyboard,

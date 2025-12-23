@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from memorius.config import settings
 from memorius.database.repositories import CardRepository, DeckRepository, StatisticsRepository
-from memorius.keyboards.keyboards import (
+from memorius.keyboards import (
     get_deck_actions_keyboard,
     get_difficulty_keyboard,
     get_review_keyboard,

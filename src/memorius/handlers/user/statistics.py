@@ -4,7 +4,7 @@ from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from memorius.database.repositories import StatisticsRepository
-from memorius.keyboards.keyboards import get_statistics_period_keyboard
+from memorius.keyboards import get_statistics_period_keyboard
 
 router = Router()
 
