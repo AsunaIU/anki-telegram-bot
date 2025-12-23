@@ -17,6 +17,7 @@ def get_main_menu_keyboard(locale: TranslatorRunner) -> ReplyKeyboardMarkup:
     builder.button(text=locale.my_decks())
     builder.button(text=locale.statistics())
     builder.button(text=locale.help())
+    builder.button(text=locale.language())
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
 
@@ -137,4 +138,16 @@ def get_variant_keyboard(card, locale: TranslatorRunner) -> InlineKeyboardMarkup
 
     keyboard.append([InlineKeyboardButton(text=locale.skip_button(), callback_data="skip_card")])
 
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_language_keyboard(locale: TranslatorRunner) -> InlineKeyboardMarkup:
+    """Keyboard for language selection"""
+    keyboard = [
+        [
+            InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang_ru"),
+            InlineKeyboardButton(text="🇬🇧 English", callback_data="lang_en"),
+        ],
+        [InlineKeyboardButton(text=locale.btn_back_menu(), callback_data="main_menu")],
+    ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)

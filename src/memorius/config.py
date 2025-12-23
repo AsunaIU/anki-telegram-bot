@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str
 
+    TIMEOUT_SECONDS: int = 60
+
     model_config = SettingsConfigDict(env_file=".env")
 
     @property

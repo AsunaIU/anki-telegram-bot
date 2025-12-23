@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from memorius.config import settings
 from memorius.database.repositories import CardRepository, DeckRepository, StatisticsRepository
 from memorius.keyboards.keyboards import (
     get_deck_actions_keyboard,
@@ -20,8 +21,6 @@ router = Router()
 
 timeout_tasks = {}
 
-TIMEOUT_SECONDS = 60
-
 
 async def handle_timeout(
     user_id: int,
@@ -34,7 +33,7 @@ async def handle_timeout(
 ):
     """Handle question timeout"""
     try:
-        await asyncio.sleep(TIMEOUT_SECONDS)
+        await asyncio.sleep(settings.TIMEOUT_SECONDS)
 
         data = await state.get_data()
 

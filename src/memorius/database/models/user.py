@@ -14,6 +14,7 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(String(255), nullable=True)
     first_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    language_code: Mapped[str] = mapped_column(String(2), default="ru", server_default="ru", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     decks: Mapped[list["Deck"]] = relationship(  # noqa: F821

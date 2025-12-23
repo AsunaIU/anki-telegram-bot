@@ -1,5 +1,5 @@
 from memorius.utils.states import CreateCard, CreateDeck, EditCard, ReviewSession
-from memorius.utils.validators import sanitize_text, validate_deck_name
+from memorius.utils.validators import validate_deck_name
 
 __all__ = [
     "CreateDeck",
@@ -7,5 +7,4 @@ __all__ = [
     "EditCard",
     "ReviewSession",
     "validate_deck_name",
-    "sanitize_text",
 ]
