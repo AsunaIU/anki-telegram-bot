@@ -1,0 +1,104 @@
+[project]
+name = "memorius"
+version = "1.0.0"
+description = "Memorius the bot"
+readme = "README.md"
+requires-python = ">=3.13"
+
+dependencies = [
+    "aiogram>=3.22.0",
+    "alembic>=1.17.2",
+    "asyncpg>=0.31.0",
+    "fluentogram>=1.2.1",
+    "pydantic>=2.11.10",
+    "pydantic-settings>=2.12.0",
+    "sqlalchemy>=2.0.45",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit==4.2.0",
+    "ruff>=0.6.9",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "aiosqlite>=0.19.0",
+    "pytest-aiohttp>=1.0.5",
+    "freezegun>=1.2.2",
+    "pytest-flake8>=1.1.1",
+    "pytest-mypy>=0.10.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/memorius"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+fix = true
+
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM"   # simplify
+]
+
+exclude = [
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "asyncio: mark test as async",
+    "slow: mark test as slow running",
+    "integration: mark test as integration test",
+    "unit: mark test as unit test",
+]
+
+[tool.coverage.run]
+source = ["src/memorius"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+precision = 2
+show_missing = true
+skip_covered = false
