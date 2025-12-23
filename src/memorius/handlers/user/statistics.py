@@ -38,7 +38,7 @@ async def show_statistics(callback: CallbackQuery, session: AsyncSession, locale
 
     if total == 0:
         text = locale.stats_for_period(days=days) + "\n\n"
-        text += locale.no_stats
+        text += locale.no_stats()
     else:
         successful = easy
         need_review = medium + hard

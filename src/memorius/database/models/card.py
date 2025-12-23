@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from memorius.database.models.base import Base
@@ -13,6 +13,14 @@ class Card(Base):
     deck_id: Mapped[int] = mapped_column(Integer, ForeignKey("decks.id", ondelete="CASCADE"), nullable=False)
     question: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str] = mapped_column(Text, nullable=False)
+
+    card_type: Mapped[str] = mapped_column(String(20), default="text", nullable=False)  # 'text' or 'variants'
+    variant_1: Mapped[str | None] = mapped_column(Text, nullable=True)
+    variant_2: Mapped[str | None] = mapped_column(Text, nullable=True)
+    variant_3: Mapped[str | None] = mapped_column(Text, nullable=True)
+    variant_4: Mapped[str | None] = mapped_column(Text, nullable=True)
+    correct_variant: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 1-4
+
     ease_factor: Mapped[float] = mapped_column(Float, default=2.5)
     interval: Mapped[int] = mapped_column(Integer, default=0)  # days
     repetitions: Mapped[int] = mapped_column(Integer, default=0)

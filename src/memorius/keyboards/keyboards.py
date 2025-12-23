@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from fluentogram import TranslatorRunner
 
@@ -114,3 +114,27 @@ def get_statistics_period_keyboard(locale: TranslatorRunner) -> InlineKeyboardMa
     builder.button(text=locale.btn_back_menu(), callback_data="main_menu")
     builder.adjust(3, 1)
     return builder.as_markup()
+
+
+def get_card_type_keyboard(locale: TranslatorRunner) -> InlineKeyboardMarkup:
+    """Keyboard for selecting card type"""
+    keyboard = [
+        [InlineKeyboardButton(text=locale.card_type_text(), callback_data="card_type_text")],
+        [InlineKeyboardButton(text=locale.card_type_variants(), callback_data="card_type_variants")],
+        [InlineKeyboardButton(text=locale.btn_cancel(), callback_data="cancel")],
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def get_variant_keyboard(card, locale: TranslatorRunner) -> InlineKeyboardMarkup:
+    """Keyboard for variant answers"""
+    keyboard = []
+
+    for i in range(1, 5):
+        variant = getattr(card, f"variant_{i}", None)
+        if variant:
+            keyboard.append([InlineKeyboardButton(text=f"{i}", callback_data=f"variant_answer_{i}")])
+
+    keyboard.append([InlineKeyboardButton(text=locale.skip_button(), callback_data="skip_card")])
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)

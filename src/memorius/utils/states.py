@@ -10,8 +10,11 @@ class CreateDeck(StatesGroup):
 class CreateCard(StatesGroup):
     """States for creating card"""
 
+    waiting_for_card_type = State()
     waiting_for_question = State()
     waiting_for_answer = State()
+    waiting_for_variants = State()
+    waiting_for_correct_variant = State()
 
 
 class EditCard(StatesGroup):
@@ -19,6 +22,8 @@ class EditCard(StatesGroup):
 
     waiting_for_new_question = State()
     waiting_for_new_answer = State()
+    waiting_for_new_variants = State()
+    waiting_for_new_correct_variant = State()
 
 
 class ReviewSession(StatesGroup):

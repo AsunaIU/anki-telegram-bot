@@ -1,6 +1,11 @@
 statistics = 📊 Statistics
 select_period = 📊 <b>Select period for statistics:</b>
 stats_for_period = 📊 <b>Statistics for {$days} days:</b>
+stats_7_days = Last 7 days
+stats_30_days = Last 30 days
+stats_90_days = Last 90 days
+
+no_stats = No statistics for this period yet.
 no_stats = You don't have statistics for this period yet. Start studying cards! 📚
 stats_details = 
     📈 <b>General information:</b>

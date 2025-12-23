@@ -10,9 +10,30 @@ class CardRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_card(self, deck_id: int, question: str, answer: str) -> Card:
+    async def create_card(
+        self,
+        deck_id: int,
+        question: str,
+        answer: str,
+        card_type: str = "text",
+        variant_1: str | None = None,
+        variant_2: str | None = None,
+        variant_3: str | None = None,
+        variant_4: str | None = None,
+        correct_variant: int | None = None,
+    ) -> Card:
         """Create new card"""
-        card = Card(deck_id=deck_id, question=question, answer=answer)
+        card = Card(
+            deck_id=deck_id,
+            question=question,
+            answer=answer,
+            card_type=card_type,
+            variant_1=variant_1,
+            variant_2=variant_2,
+            variant_3=variant_3,
+            variant_4=variant_4,
+            correct_variant=correct_variant,
+        )
         self.session.add(card)
         await self.session.commit()
         await self.session.refresh(card)
@@ -38,13 +59,30 @@ class CardRepository:
         result = await self.session.execute(select(Card).where(Card.id == card_id))
         return result.scalar_one_or_none()
 
-    async def update_card(self, card_id: int, question: str, answer: str) -> None:
+    async def update_card(
+        self,
+        card_id: int,
+        question: str,
+        answer: str,
+        card_type: str = "text",
+        variant_1: str | None = None,
+        variant_2: str | None = None,
+        variant_3: str | None = None,
+        variant_4: str | None = None,
+        correct_variant: int | None = None,
+    ) -> None:
         """Update card content"""
         result = await self.session.execute(select(Card).where(Card.id == card_id))
         card = result.scalar_one_or_none()
         if card:
             card.question = question
             card.answer = answer
+            card.card_type = card_type
+            card.variant_1 = variant_1
+            card.variant_2 = variant_2
+            card.variant_3 = variant_3
+            card.variant_4 = variant_4
+            card.correct_variant = correct_variant
             await self.session.commit()
 
     async def update_card_review(self, card_id: int, difficulty: str) -> None:
